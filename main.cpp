@@ -1,62 +1,121 @@
 //
 //  main.cpp
-//  jan1
+//  jan2
 //
 //  Created by Sophia Chen on 1/24/21.
 //
 
 #include <iostream>
-#include <vector>
-#include <unordered_set>
+#include <set>
 using namespace std;
 
+struct area{
+    int start;
+    int end;
+};
+
 int main(void) {
-    
     int n, k;
     cin >> n >> k;
-    int arr[n];
+    
+    int psum[n+1]; psum[0] = 0; //n+1
+    int rpsum[n+1]; rpsum[0] = 0;
+    char str[n];
     for(int i = 0; i < n; i++){
-        arr[i] = i;
+        cin >> str[i];
     }
-    int a, b, med;
-    
-    vector<int> arra[n];
-    
-    unordered_set<int> count[n];
-    
-    for(int i = 0; i < k; i++){
-        cin >> a >> b; a--; b--;
-        arra[arr[a]].push_back(b);
-        count[arr[a]].insert(b);
-        arra[arr[b]].push_back(a);
-        count[arr[b]].insert(a);
-        med = arr[a];
-        arr[a] = arr[b];
-        arr[b] = med;
-    }
-    
-    int ans[n];
-    for(int i = 0; i < n; i++){
-        int x;
-        if(arra[i].empty()){
-            cout << 1 << endl;
+    char prev, c;
+    prev = str[0];
+    set<char> low;
+    low.insert(str[0]);
+    psum[1] = 1;
+    for(int i = 1; i < n; i++){
+        c = str[i];
+        if(c == prev){
+            psum[i+1] = psum[i];
         }
         else{
-            if(arra[i].back() != i && arra[i].back() < i){
-                ans[i] = ans[arra[i].back()];
-                cout << ans[arra[i].back()] << endl;
+            if(c > prev){
+                psum[i+1] = psum[i] + 1;
+                low.insert(c);
             }
-            else{
-                for(x = i; arra[x].back() != i;){
-                    x = arra[x].back();
-                    if(arra[x].empty()){break;}
-                    if(count[i].size() == n){break;}
-                    count[i].insert(arra[x].begin(), arra[x].end());
+            if(c < prev){
+                if(low.find(c) != low.end()){
+                    psum[i+1] = psum[i];
                 }
-                ans[i] = count[i].size();
-                cout << count[i].size() << endl;
+                else{
+                    psum[i+1] = psum[i]+1;
+                    low.insert(c);
+                }
+                set<char>::iterator it = low.find(c);
+                if(it != low.end()){
+                    it++;
+                    for(; it != low.end(); it++){
+                        low.erase(*it);
+                        it = low.find(c);
+                    }
+                }
             }
         }
+        prev = c;
+    }
+    
+    low.clear();
+    prev = str[n-1];
+    low.insert(prev);
+    rpsum[1] = 1;
+    for(int i = 1; i < n; i++){
+        c = str[n-i-1];
+        if(c == prev){
+            rpsum[i+1] = rpsum[i];
+        }
+        else{
+            if(c > prev){
+                rpsum[i+1] = rpsum[i] + 1;
+                low.insert(c);
+            }
+            if(c < prev){
+                if(low.find(c) != low.end()){
+                    rpsum[i+1] = rpsum[i];
+                }
+                else{
+                    rpsum[i+1] = rpsum[i]+1;
+                    low.insert(c);
+                }
+                set<char>::iterator it = low.find(c);
+                if(it != low.end()){
+                    it++;
+                    for(; it != low.end(); it++){
+                        low.erase(*it);
+                        it = low.find(c);
+                    }
+                }
+            }
+        }
+        prev = c;
+    }
+    
+    area inp[k];
+    for(int i = 0; i < k; i++){
+        cin >> inp[i].start >> inp[i].end;
+        inp[i].start--;
+        inp[i].end--;
+    }
+
+    int a, b, sum;
+    for(int i = 0; i < k; i++){
+        sum = 0;
+        a = inp[i].start;
+        b = inp[i].end;
+        if(a > 0){
+            sum += psum[a];
+            if(b < n-1){
+                sum += rpsum[n-b-1];
+            }
+        }
+        else{
+            sum += rpsum[n-b-1];
+        }
+        cout << sum << endl;
     }
 }
-
